@@ -16,6 +16,7 @@ ignoreList = [
     "python3",
     "vim",
     "ruby",
+    "imagemagick",
 ]
 
 def IsListed(formula):
