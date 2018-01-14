@@ -6,9 +6,12 @@ import commands
 import re
 
 ignoreList = [
+    "telnet",
     "aria2",
     "zsh",
     "you-get",
+    "ffmpeg",
+    "libav",
     "wget",
     "go",
     "node",
@@ -17,6 +20,7 @@ ignoreList = [
     "vim",
     "ruby",
     "imagemagick",
+    "gnuplot",
 ]
 
 def IsListed(formula):
@@ -36,7 +40,7 @@ def SetDeps(formula):
 
 def GetAllFormulae():
     formulaString = commands.getoutput('brew list')
-    formulaList = re.split("\t|\n|", formulaString)
+    formulaList = re.split("\t|\n", formulaString)
     return formulaList
 
 def Main():
