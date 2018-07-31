@@ -17,7 +17,6 @@ ignoreList = [
     "python",
     "python3",
     "vim",
-    "ruby",
     "imagemagick",
     "gnuplot",
     "lua",
@@ -30,8 +29,8 @@ def IsListed(formulaName):
     return False
 
 def SetDeps(formulaName):
-    depString = subprocess.getoutput('brew deps ' + formulaName)
-    depList = depString.split("\n")
+    depString = subprocess.check_output(["brew", "deps", formulaName])
+    depList = str(depString).split("\n")
     if depList != [""]:
         for ignoreDeps in depList:
             if not IsListed(ignoreDeps):
@@ -39,19 +38,19 @@ def SetDeps(formulaName):
                 SetDeps(ignoreDeps)
 
 def GetAllFormulae():
-    formulaString = subprocess.getoutput('brew list')
-    formulaList = re.split("\t|\n", formulaString)
+    formulaString = subprocess.check_output(["brew", "list"])
+    formulaList = re.split(r"\t|\n", str(formulaString))
     return formulaList
 
 def Delete():
-    formulae = ignoreList[:]
-    for formula in formulae:
+    for formula in ignoreList:
         SetDeps(formula)
 
     formulae = GetAllFormulae()
 
     for formula in formulae:
         if not IsListed(formula):
-            subprocess.getoutput('brew uninstall --ignore-dependencies ' + formula)
-
+            # subprocess.run(['brew uninstall --ignore-dependencies ' + formula])
+            print("%s" % formula)
 Delete()
+print("Done!")
