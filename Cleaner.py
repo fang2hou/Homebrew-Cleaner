@@ -23,14 +23,14 @@ ignoreList = [
     "lua",
 ]
 
-def IsListed(formula):
+def IsListed(formulaName):
     for listedFormula in ignoreList:
-        if listedFormula == formula:
+        if listedFormula == formulaName:
             return True
     return False
 
-def SetDeps(formula):
-    depString = subprocess.getoutput('brew deps ' + formula)
+def SetDeps(formulaName):
+    depString = subprocess.getoutput('brew deps ' + formulaName)
     depList = depString.split("\n")
     if depList != [""]:
         for ignoreDeps in depList:
@@ -43,15 +43,15 @@ def GetAllFormulae():
     formulaList = re.split("\t|\n", formulaString)
     return formulaList
 
-def Main():
-    loopList = ignoreList[:]
-    for formula in loopList:
+def Delete():
+    formulae = ignoreList[:]
+    for formula in formulae:
         SetDeps(formula)
 
-    loopList = GetAllFormulae()
+    formulae = GetAllFormulae()
 
-    for formula in loopList:
+    for formula in formulae:
         if not IsListed(formula):
             subprocess.getoutput('brew uninstall --ignore-dependencies ' + formula)
 
-Main()
+Delete()
