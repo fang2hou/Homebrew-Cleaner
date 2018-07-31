@@ -2,12 +2,11 @@
 # Homebrew Cleaner
 # Author: Fang2hou
 
-import commands
+import subprocess
 import re
 
 ignoreList = [
     "telnet",
-    "aria2",
     "zsh",
     "you-get",
     "ffmpeg",
@@ -21,6 +20,7 @@ ignoreList = [
     "ruby",
     "imagemagick",
     "gnuplot",
+    "lua",
 ]
 
 def IsListed(formula):
@@ -30,7 +30,7 @@ def IsListed(formula):
     return False
 
 def SetDeps(formula):
-    depString = commands.getoutput('brew deps ' + formula)
+    depString = subprocess.getoutput('brew deps ' + formula)
     depList = depString.split("\n")
     if depList != [""]:
         for ignoreDeps in depList:
@@ -39,7 +39,7 @@ def SetDeps(formula):
                 SetDeps(ignoreDeps)
 
 def GetAllFormulae():
-    formulaString = commands.getoutput('brew list')
+    formulaString = subprocess.getoutput('brew list')
     formulaList = re.split("\t|\n", formulaString)
     return formulaList
 
@@ -52,6 +52,6 @@ def Main():
 
     for formula in loopList:
         if not IsListed(formula):
-            commands.getoutput('brew uninstall --ignore-dependencies ' + formula)
+            subprocess.getoutput('brew uninstall --ignore-dependencies ' + formula)
 
 Main()
