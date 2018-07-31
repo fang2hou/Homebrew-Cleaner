@@ -30,8 +30,10 @@ def IsListed(formulaName):
 
 def SetDeps(formulaName):
     depString = subprocess.check_output(["brew", "deps", formulaName])
-    depList = str(depString).split("\n")
-    if depList != [""]:
+    depString = depString.decode("UTF-8").rstrip()
+    depList   = depString.split("\n")
+    print(depList)
+    if len(depList) > 1:
         for ignoreDeps in depList:
             if not IsListed(ignoreDeps):
                 ignoreList.append(ignoreDeps)
@@ -39,7 +41,8 @@ def SetDeps(formulaName):
 
 def GetAllFormulae():
     formulaString = subprocess.check_output(["brew", "list"])
-    formulaList = re.split(r"\t|\n", str(formulaString))
+    formulaString = formulaString.decode("UTF-8").rstrip()
+    formulaList   = re.split(r"\t|\n", formulaString)
     return formulaList
 
 def Delete():
