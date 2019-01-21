@@ -1,8 +1,8 @@
 # This Python file uses the following encoding: utf-8
-import subprocess
 import re
+import os
 
-default_ignore_formulae = [
+default_ignore_formulae_list = [
     "telnet",
     "zsh",
     "fish",
@@ -12,14 +12,16 @@ default_ignore_formulae = [
     "node",
     "python",
     "python3",
+    "ruby",
     "vim",
     "imagemagick",
     "gnuplot"
 ]
 
+
 class HomebrewCleaner():
     def __init__(self, ignore=None):
-        self.ignore_formulae = ignore if ignore else default_ignore_formulae
+        self.ignore_formulae_list = ignore if ignore else default_ignore_formulae_list
         self.get_all_formulae()
 
     def is_listed(self, name_of_formula):
@@ -29,14 +31,16 @@ class HomebrewCleaner():
             return False
 
     def get_all_formulae(self):
-        system_string = subprocess.check_output(["brew", "list"]).rstrip()
+        command = os.popen("brew list")
+        system_string = command.read().rstrip()
         formulae = re.split(r"\t|\n", system_string)
         self.formulae = formulae
 
     def ignore_dependencies(self, name_of_formula):
-        system_string = subprocess.check_output(["brew", "deps", name_of_formula])
+        command = os.popen("brew deps " + name_of_formula)
+        system_string = command.read()
         dependencies = system_string.rstrip().split("\n")
-        
+
         if dependencies[0] != "":
             next_dependencies = []
 
@@ -49,24 +53,45 @@ class HomebrewCleaner():
                 self.ignore_dependencies(dependency)
 
     def clean(self):
-        print("\033[94mHomebrew Cleaner:\033[0m Start analyzing... 🔍")
+        self.send_message("Start analyzing...🔍   0%", True)
 
-        for formula in self.ignore_formulae:
+        display_step = 1/len(self.ignore_formulae_list) * 100
+        display_percent = 0
+
+        for formula in self.ignore_formulae_list:
             if self.is_listed(formula):
                 self.formulae.remove(formula)
                 self.ignore_dependencies(formula)
 
-        print("================================================")
+            display_percent += display_step
+            print("\b\b\b%2.0f%%" % display_percent, end="", flush=True)
+
+        print("\n================================================")
 
         if len(self.formulae) != 0:
-            for formula in self.formulae: self.delete(formula)
-            print("\033[94mHomebrew Cleaner:\033[0m Done! ✅")
+            for formula in self.formulae:
+                self.delete(formula)
+            self.send_message("Done! ✅")
         else:
-            print("\033[94mHomebrew Cleaner:\033[0m Nothing needs to be removed! 💯")
+            self.send_message("Nothing needs to be removed! 💯")
 
     def delete(self, name_of_formula):
-       subprocess.check_output(["brew", "uninstall", "--ignore-dependencies", name_of_formula])
-       print("\033[94mHomebrew Cleaner:\033[0m \"%s\" has been deleted. ♻️" % name_of_formula)
+        command = os.popen(
+            "brew uninstall --ignore-dependencies " + name_of_formula)
+        results = command.read()
+
+        for result in results:
+            if "Error" in result:
+                self.send_message(result)
+                return
+
+        self.send_message("\"%s\" has been deleted. ♻️" % name_of_formula)
+
+    def send_message(self, message_string, no_new_line=None):
+        end_symbol = '' if no_new_line else '\n'
+        print("\033[94mHomebrew Cleaner:\033[0m " +
+              message_string, end=end_symbol, flush=True)
+
 
 if __name__ == "__main__":
     hc = HomebrewCleaner()
